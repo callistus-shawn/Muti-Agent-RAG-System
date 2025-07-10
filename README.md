@@ -7,3 +7,14 @@
 <div align="center">
   <img src="graph/langgraph_visualization.png" height="400" width="200" />
 </div>
+
+## 📁 Project Structure
+
+| File           | Description |
+|----------------|-------------|
+| `app.py`       | Sets up the FastAPI app and defines the endpoint for PDF upload and question answering. |
+| `main.py`      | Runs the whole RAG workflow to answer questions. |
+| `data_process.py` | Handles PDF parsing, text chunking, and vector store management. |
+| `tools.py`     | Provides document and web search tools for the agentic workflow. |
+| `agents.py`    | Defines agent logic and state. |
+| `workflow.py`  | Configures and runs the LangGraph-based agent workflow. |
