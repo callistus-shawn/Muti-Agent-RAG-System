@@ -1,5 +1,5 @@
 from langgraph.graph import StateGraph, END
-from agents import ToolState, tool_decision_agent, rag_agent
+from mcp_agent import ToolState, tool_decision_agent, rag_agent
 
 def route_after_tool_decision(state: ToolState) -> str:
     """Route after tool decision agent."""
@@ -29,12 +29,12 @@ def create_langgraph_tool_workflow():
     
     return workflow
 
-def run_langgraph_tool_workflow(question: str):
+async def run_langgraph_tool_workflow(question: str):
     initial_state = ToolState(question=question)
     workflow = create_langgraph_tool_workflow()
     
     app = workflow.compile()
-    result = app.invoke(initial_state)
+    result = await app.ainvoke(initial_state)
 
     if isinstance(result, dict):
         result = ToolState(**result)

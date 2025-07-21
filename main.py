@@ -1,11 +1,11 @@
 from typing import Optional
 from dotenv import load_dotenv
 from workflow import run_langgraph_tool_workflow
-from data_process import data_processor
+from .utils.data_process import data_processor
 
 load_dotenv()
 
-def main(pdf_bytes: Optional[bytes] = None, question: Optional[str] = None):
+async def main(pdf_bytes: Optional[bytes] = None, question: Optional[str] = None):
     """
     Main function to run the LangGraph workflow.
     
@@ -29,7 +29,7 @@ def main(pdf_bytes: Optional[bytes] = None, question: Optional[str] = None):
     
     
     try:
-        result = run_langgraph_tool_workflow(question)
+        result = await run_langgraph_tool_workflow(question)
         
         # Display results
         print("\nRESULTS:\n\n")

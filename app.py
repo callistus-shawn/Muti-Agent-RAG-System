@@ -1,6 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from dotenv import load_dotenv
-from data_process import data_processor
+from .utils.data_process import data_processor
 
 from fastapi import FastAPI, UploadFile, File, Form
 from main import main
@@ -18,9 +18,9 @@ async def ask_pdf(
     print("cleared")
     if pdf:
         file_content = await pdf.read()
-        main(pdf_bytes=file_content, question=question)
+        await main(pdf_bytes=file_content, question=question)
     else:
-        main(question=question)
+        await main(question=question)
     
     result="done"
  

@@ -4,7 +4,8 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.agents import create_openai_functions_agent, AgentExecutor
 from langchain.tools import Tool
 from langchain.prompts import ChatPromptTemplate
-from tools import search_document, search_web
+from .utils.search_doc import search_document
+from langchain_mcp_adapters.client import MultiServerMCPClient
 
 
 class ToolState(BaseModel):
@@ -14,12 +15,37 @@ class ToolState(BaseModel):
     error: Optional[str] = None
     retrieved_chunks: Optional[str] = None
 
-TOOLS = [
-    Tool.from_function(search_document, name="search_document", description="Search the provided document for relevant context to answer the question."),
-    Tool.from_function(search_web, name="search_web", description="Search the web for up-to-date information to answer the question."),
-]
 
-def tool_decision_agent(state: ToolState) -> ToolState:
+MCP_SERVERS ={
+        "search_web": {
+            "command": "python",
+            
+            "args": ["./mcp_servers/web_server.py"],
+            "transport": "stdio",
+        },
+        "search_doc": {
+            "command": "python",
+            
+            "args": ["./mcp_servers/doc_server.py"],
+            "transport": "stdio",
+        }
+    }
+mcp_client = None
+mcp_tools = []
+
+async def get_all_tools():
+    global mcp_client, mcp_tools
+    
+    if MCP_SERVERS and not mcp_client:
+        mcp_client = MultiServerMCPClient(MCP_SERVERS)
+        mcp_tools = await mcp_client.get_tools()
+    
+    return mcp_tools
+
+
+
+
+async def tool_decision_agent(state: ToolState) -> ToolState:
     """First agent: Decide if user explicitly requested tools."""
     llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
     system_prompt = """
@@ -32,6 +58,7 @@ IMPORTANT RULES:
 
 Give a proper answer to the user's question if you have used the tools.
 """
+    TOOLS = await get_all_tools()
     prompt = ChatPromptTemplate.from_messages([
         ("system", system_prompt),
         ("human", "Question: {question}"),
@@ -45,12 +72,12 @@ Give a proper answer to the user's question if you have used the tools.
     executor = AgentExecutor(agent=agent, tools=TOOLS, verbose=True, return_intermediate_steps=True)
     
     try:
-        result = executor.invoke({
+        result = await executor.ainvoke({
             "question": state.question,
             "agent_scratchpad": ""
         })
         
-        # Check if the result is "use_rag" or a tool response
+        
         if result["output"].strip().lower() == "use_rag":
             state.answer = "use_rag"
             state.tool_used = "none"
@@ -65,7 +92,7 @@ Give a proper answer to the user's question if you have used the tools.
 
 
 
-def rag_agent(state: ToolState) -> ToolState:
+async def rag_agent(state: ToolState) -> ToolState:
     """Second agent: Use RAG to answer from retrieved chunks, fallback to web if needed."""
     llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
     
@@ -92,16 +119,18 @@ Chunks provided:
         ("human", "Question: {question}"),
         ("ai", "{agent_scratchpad}")
     ])
-    
+
+    TOOLS = await get_all_tools()
+
     agent = create_openai_functions_agent(
         llm,
-        [Tool.from_function(search_web, name="search_web", description="Search the web for up-to-date information to answer the question.")],
+        TOOLS,
         prompt=prompt
     )
-    executor = AgentExecutor(agent=agent, tools=[Tool.from_function(search_web, name="search_web", description="Search the web for up-to-date information to answer the question.")], verbose=True, return_intermediate_steps=True)
+    executor = AgentExecutor(agent=agent, tools=TOOLS, verbose=True, return_intermediate_steps=True)
     
     try:
-        result = executor.invoke({
+        result = await executor.ainvoke({
             "question": state.question,
             "chunks": chunks_text,
             "agent_scratchpad": ""
