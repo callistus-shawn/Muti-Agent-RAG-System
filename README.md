@@ -8,7 +8,7 @@
   <img src="graph/langgraph_visualization.png" height="400" width="200" />
 </div>
 
-## 📁 Project Structure
+## Project Structure
 
 | File           | Description |
 |----------------|-------------|
@@ -17,7 +17,7 @@
 | `workflow.py`  | Configures and runs the LangGraph-based agent workflow. |
 | `mcp_agent.py` | Agent routing logic that dynamically selects document or web search tools based on query context. |
 
-### 📂 `mcp_servers/` – MCP Tools
+### `mcp_servers/` – MCP Tools
 
 | File           | Description |
 |----------------|-------------|
@@ -25,7 +25,7 @@
 | `web_server.py`       | Launches web search tool server to answer queries from the internet. |
 
 
-### 📂 `utils/` – Document and Vectorstore Utilities
+### `utils/` – Document and Vectorstore Utilities
 
 | File           | Description |
 |----------------|-------------|
