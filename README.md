@@ -14,7 +14,20 @@
 |----------------|-------------|
 | `app.py`       | Sets up the FastAPI app and defines the endpoint for PDF upload and question answering. |
 | `main.py`      | Runs the whole RAG workflow to answer questions. |
-| `data_process.py` | Handles PDF parsing, text chunking, and vector store management. |
-| `tools.py`     | Provides document and web search tools for the agentic workflow. |
-| `agents.py`    | Defines agent logic and state. |
 | `workflow.py`  | Configures and runs the LangGraph-based agent workflow. |
+| `mcp_agent.py` | Agent routing logic that dynamically selects document or web search tools based on query context. |
+
+### 📂 `mcp_servers/` – MCP Tools
+
+| File           | Description |
+|----------------|-------------|
+| `doc_server.py`       | Launches document search tool server for retrieving semantic chunks from parsed PDFs. |
+| `web_server.py`       | Launches web search tool server to answer queries from the internet. |
+
+
+### 📂 `utils/` – Document and Vectorstore Utilities
+
+| File           | Description |
+|----------------|-------------|
+| `doc_process.py`      | Parses PDF documents, chunks content, generates embeddings, and manages the vector store.  |
+| `search_doc.py`       | Implements semantic search logic to retrieve relevant chunks from the vector store.|
